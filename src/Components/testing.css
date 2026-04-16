@@ -10,7 +10,7 @@
     justify-content: space-between;
 }
 
-button {
+.Counter_button {
     width: 100px;
     height:100px;
     font-size: 20px;
@@ -23,3 +23,16 @@ span {
     flood-color: black;
     color: black;
 }
+h1 {
+    position: absolute;
+    top: 0;
+    left: 50%;  
+    transform: translateX(-50%);
+}
+.Buttons_panel {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}   

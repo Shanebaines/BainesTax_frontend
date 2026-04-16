@@ -1,15 +1,18 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import ProductCard from "./Components/productCards.jsx"
-import UserData from "./Components/userData.jsx"
-import Testing from './Components/Testing.jsx'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import HomePage from './pages/homepage.jsx'
+import LoginPage from './pages/loginpage.jsx'
 
 function App() {
 
   return (
-  <Testing/>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<h2 style={{ padding: '2rem' }}>404 Not Found</h2>} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
