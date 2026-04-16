@@ -1,0 +1,25 @@
+.background {
+    background-color: aliceblue;
+    padding: 20px;
+    width: 450px;
+    height: 290px;
+    border: 1px solid black;
+    border-radius: 10px;
+    flex-direction: row;
+    
+    justify-content: space-between;
+}
+
+button {
+    width: 100px;
+    height:100px;
+    font-size: 20px;
+    margin: 0 10px;
+}
+
+span {
+    font-size: 20px;
+    margin: 0 10px;
+    flood-color: black;
+    color: black;
+}
