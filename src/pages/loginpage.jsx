@@ -1,10 +1,11 @@
 import './logingpage.css'
+import { Link } from 'react-router-dom'
 
 export default function LoginPage() {
     return (
         <div className="loom-shell">
             <div className="fabric-bg" aria-hidden="true"></div>
-            <p className="brand-corner">BAINES TAX</p>
+            <Link to="/" className="brand-corner">BAINES TAX</Link>
 
             <main className="login-card" role="main">
                 <h1>Login Now</h1>
