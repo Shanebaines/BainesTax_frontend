@@ -13,8 +13,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/*" element={<LoginPage />} />
+        <Route path="/admin/login" element={<LoginPage />} />
+        <Route path="/admin/*" element={<AdminPage />} />
         <Route path="*" element={<h2 style={{ padding: '2rem' }}>404 Not Found</h2>} />
       </Routes>
     </BrowserRouter>
