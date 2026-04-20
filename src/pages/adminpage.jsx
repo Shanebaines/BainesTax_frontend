@@ -1,4 +1,7 @@
-import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import { Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 function SectionCard({ title, description, metrics }) {
   return (
@@ -50,17 +53,132 @@ function CustomersPanel() {
 }
 
 function ProductsPanel() {
+  const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadProducts = async () => {
+      const token = localStorage.getItem('authToken')
+
+      if (!token) {
+        navigate('/admin/login', { replace: true })
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setErrorMessage('')
+
+        const { data } = await axios.get('http://localhost:3000/api/products', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!isMounted) {
+          return
+        }
+
+        setProducts(Array.isArray(data) ? data : [])
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        const message = error.response?.data?.error || 'Failed to load products from the backend.'
+        setErrorMessage(message)
+        toast.error(message)
+
+        if (error.response?.status === 401) {
+          navigate('/admin/login', { replace: true })
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadProducts()
+
+    return () => {
+      isMounted = false
+    }
+  }, [navigate])
+
+  const totalProducts = products.length
+  const lowStockProducts = products.filter((product) => Number(product.stock ?? 0) <= 10).length
+  const totalInventory = products.reduce((sum, product) => sum + Number(product.stock ?? 0), 0)
+  const lowestPrice = products.length > 0 ? Math.min(...products.map((product) => Number(product.price ?? 0))) : 0
+
   return (
-    <SectionCard
-      title="Products"
-      description="Track inventory, pricing, and category performance."
-      metrics={[
-        { label: 'Total SKUs', value: '412' },
-        { label: 'Low Stock', value: '23' },
-        { label: 'Best Seller', value: 'Classic Blazer' },
-        { label: 'Draft Items', value: '12' },
-      ]}
-    />
+    <section className="admin-section-card admin-products-panel">
+      <header className="admin-section-head">
+        <h1>Products</h1>
+        <p>Live product details loaded from the backend.</p>
+      </header>
+
+      <div className="admin-metrics-grid">
+        <article className="admin-metric-item">
+          <div className="admin-metric-value">{totalProducts}</div>
+          <div className="admin-metric-label">Total Products</div>
+        </article>
+        <article className="admin-metric-item">
+          <div className="admin-metric-value">{lowStockProducts}</div>
+          <div className="admin-metric-label">Low Stock Items</div>
+        </article>
+        <article className="admin-metric-item">
+          <div className="admin-metric-value">{totalInventory}</div>
+          <div className="admin-metric-label">Total Stock</div>
+        </article>
+        <article className="admin-metric-item">
+          <div className="admin-metric-value">${lowestPrice.toFixed(2)}</div>
+          <div className="admin-metric-label">Lowest Price</div>
+        </article>
+      </div>
+
+      {errorMessage ? <p className="admin-products-status admin-products-status--error">{errorMessage}</p> : null}
+
+      {isLoading ? (
+        <p className="admin-products-status">Loading products from backend...</p>
+      ) : products.length === 0 ? (
+        <p className="admin-products-status">No products found in the backend database.</p>
+      ) : (
+        <div className="admin-products-table-wrap">
+          <table className="admin-products-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.productID}>
+                  <td>
+                    <div className="admin-product-name">{product.productName}</div>
+                    <div className="admin-product-meta">{product.altNames?.[0] || 'No alternate name'}</div>
+                  </td>
+                  <td>{product.productID}</td>
+                  <td>{product.category || 'Uncategorized'}</td>
+                  <td>${Number(product.price ?? 0).toFixed(2)}</td>
+                  <td>{product.stock ?? 0}</td>
+                  <td className="admin-product-description">{product.description || 'No description provided'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   )
 }
 
