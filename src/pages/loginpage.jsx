@@ -1,8 +1,52 @@
-import { Link } from 'react-router-dom'
+import axios from 'axios'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 export default function LoginPage() {
   const [keepLogged, setKeepLogged] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [responseMessage, setResponseMessage] = useState('')
+  const [responseType, setResponseType] = useState('')
+  const navigate = useNavigate()
+
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setResponseMessage('')
+    setResponseType('')
+
+    try {
+      const { data } = await axios.post('http://localhost:3000/api/users/login', {
+        email,
+        password,
+      })
+
+      console.log('Login response from backend:', data)
+
+      if (data?.token) {
+        localStorage.setItem('authToken', data.token)
+        axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
+      }
+
+      setResponseMessage('Login successful. Token received from backend and saved on the frontend.')
+      setResponseType('success')
+
+      if (data?.user?.type === 'Admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
+    } catch (error) {
+      const message = error.response?.data?.error || 'Login failed. Please check your credentials.'
+      setResponseMessage(message)
+      setResponseType('error')
+      console.error('Login request failed:', error.response?.data || error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div
@@ -54,19 +98,37 @@ export default function LoginPage() {
         <p className="login-subtitle">Enter your credentials to continue.</p>
 
         <div className="login-card">
-          <form className="login-form">
+          <form className="login-form" onSubmit={handleLogin}>
             <div className="login-field">
               <label htmlFor="email" className="login-label">
                 Email Address
               </label>
-              <input id="email" type="email" placeholder="hello@example.com" className="login-input" />
+              <input
+                id="email"
+                type="email"
+                placeholder="hello@example.com"
+                className="login-input"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
             </div>
 
             <div className="login-field">
               <label htmlFor="password" className="login-label">
                 Password
               </label>
-              <input id="password" type="password" placeholder="••••••••" className="login-input" />
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                className="login-input"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+              />
             </div>
 
             <div className="login-row">
@@ -89,9 +151,18 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <button type="button" className="login-button">
-              Sign In
+            <button type="submit" className="login-button" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </button>
+
+            {responseMessage ? (
+              <p
+                className="mt-4 text-sm"
+                style={{ color: responseType === 'success' ? '#2fdfb7' : '#f87171' }}
+              >
+                {responseMessage}
+              </p>
+            ) : null}
 
             <div className="login-divider">
               <div className="login-divider-line" />
