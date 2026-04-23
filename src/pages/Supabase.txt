@@ -1,0 +1,4 @@
+
+Anon public key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpd2NlaGViZXRvb2N2dHBjYnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTM5MTcsImV4cCI6MjA5MjQ4OTkxN30.q2p2c0ec7mxyy-xguyDdrp7xjYF1JwsdIH5WWiKqJVs
+
+Project URL: https://siwcehebetoocvtpcbqf.supabase.co
