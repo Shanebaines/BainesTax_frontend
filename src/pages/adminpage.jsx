@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { uploadMedeaToSupabase } from '../utils/medeaUpload.js'
 
 function SectionCard({ title, description, metrics }) {
   return (
@@ -52,6 +53,10 @@ function CustomersPanel() {
   )
 }
 
+function fileSignature(file) {
+  return `${file.name}-${file.size}-${file.lastModified}`
+}
+
 function ProductsPanel() {
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -67,7 +72,11 @@ function ProductsPanel() {
     stock: '',
     description: '',
     altNames: [''],
+    images: [],
   })
+  const [selectedImageFiles, setSelectedImageFiles] = useState([])
+  const [uploadedImages, setUploadedImages] = useState([])
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const navigate = useNavigate()
@@ -108,10 +117,107 @@ function ProductsPanel() {
     loadProducts()
   }, [token, navigate])
 
+  const resetAddProductForm = () => {
+    setNewProductData({
+      productID: '',
+      productName: '',
+      category: '',
+      price: '',
+      stock: '',
+      description: '',
+      altNames: [''],
+      images: [],
+    })
+    setSelectedImageFiles([])
+    setUploadedImages([])
+  }
+
+  const handleImageSelection = (event) => {
+    const files = Array.from(event.target.files || [])
+
+    if (files.length === 0) {
+      return
+    }
+
+    const invalid = files.filter((file) => file.type !== 'image/jpeg' && file.type !== 'image/png')
+    if (invalid.length > 0) {
+      toast.error('Only .jpg and .png files are allowed.')
+      event.target.value = ''
+      return
+    }
+
+    setSelectedImageFiles((prev) => {
+      const merged = [...prev, ...files]
+      return merged.filter(
+        (file, index, list) => list.findIndex((item) => fileSignature(item) === fileSignature(file)) === index,
+      )
+    })
+
+    event.target.value = ''
+  }
+
+  const removeSelectedFile = (signature) => {
+    setSelectedImageFiles((prev) => prev.filter((file) => fileSignature(file) !== signature))
+  }
+
+  const removeUploadedImage = (url) => {
+    setUploadedImages((prev) => prev.filter((item) => item !== url))
+    setNewProductData((prev) => ({
+      ...prev,
+      images: prev.images.filter((item) => item !== url),
+    }))
+  }
+
+  const handleUploadSelectedImages = async () => {
+    if (selectedImageFiles.length === 0) {
+      toast.error('Please select image files first.')
+      return
+    }
+
+    setIsUploadingImages(true)
+    try {
+      const folder = newProductData.productID?.trim()?.replace(/[^a-zA-Z0-9-_]/g, '-') || 'products'
+      const results = await Promise.all(
+        selectedImageFiles.map((file) =>
+          uploadMedeaToSupabase(file, {
+            folder,
+          }),
+        ),
+      )
+
+      const urls = results.map((result) => result.publicUrl)
+      setUploadedImages((prev) => [...prev, ...urls])
+      setNewProductData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...urls],
+      }))
+      setSelectedImageFiles([])
+      toast.success(`${urls.length} image(s) uploaded successfully.`)
+    } catch (error) {
+      toast.error(error.message || 'Failed to upload images')
+    } finally {
+      setIsUploadingImages(false)
+    }
+  }
+
+  const toggleAddProductForm = () => {
+    setShowAddForm((prev) => {
+      if (prev) {
+        resetAddProductForm()
+      }
+      return !prev
+    })
+  }
+
   const handleAddProduct = async (e) => {
     e.preventDefault()
     if (!newProductData.productID || !newProductData.productName || !newProductData.price) {
       toast.error('Please fill in required fields (Product ID, Name, Price)')
+      return
+    }
+
+    if (newProductData.images.length === 0) {
+      toast.error('Upload at least one image before creating a product.')
       return
     }
 
@@ -124,15 +230,7 @@ function ProductsPanel() {
       })
       toast.success('Product added successfully')
       setShowAddForm(false)
-      setNewProductData({
-        productID: '',
-        productName: '',
-        category: '',
-        price: '',
-        stock: '',
-        description: '',
-        altNames: [''],
-      })
+      resetAddProductForm()
       loadProducts()
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to add product'
@@ -227,9 +325,9 @@ function ProductsPanel() {
 
       <div className="admin-products-actions">
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={toggleAddProductForm}
           className="admin-btn admin-btn--primary"
-          disabled={isSaving}
+          disabled={isSaving || isUploadingImages}
         >
           {showAddForm ? 'Cancel' : '+ Add New Product'}
         </button>
@@ -280,14 +378,91 @@ function ProductsPanel() {
               className="admin-textarea"
             />
           </div>
+
+          <section className="admin-media-uploader">
+            <div className="admin-media-uploader-head">
+              <h4>Image Studio</h4>
+              <p>Upload product images to Supabase bucket <strong>images</strong>. Only JPG and PNG are accepted.</p>
+            </div>
+
+            <label htmlFor="admin-product-images" className="admin-upload-dropzone">
+              <span className="admin-upload-icon">IMG</span>
+              <strong>Select one or more images</strong>
+              <small>Drag and drop style picker, then upload to generate public URLs.</small>
+              <input
+                id="admin-product-images"
+                type="file"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                multiple
+                onChange={handleImageSelection}
+                hidden
+              />
+            </label>
+
+            {selectedImageFiles.length > 0 ? (
+              <div className="admin-selected-files">
+                <p>Ready to upload ({selectedImageFiles.length})</p>
+                <div className="admin-file-chip-list">
+                  {selectedImageFiles.map((file) => (
+                    <article key={fileSignature(file)} className="admin-file-chip">
+                      <span>{file.name}</span>
+                      <button
+                        type="button"
+                        className="admin-chip-remove"
+                        onClick={() => removeSelectedFile(fileSignature(file))}
+                        disabled={isUploadingImages || isSaving}
+                      >
+                        x
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="admin-media-actions">
+              <button
+                type="button"
+                className="admin-btn admin-btn--primary"
+                onClick={handleUploadSelectedImages}
+                disabled={isUploadingImages || isSaving || selectedImageFiles.length === 0}
+              >
+                {isUploadingImages ? 'Uploading...' : 'Upload Selected Images'}
+              </button>
+              <span className="admin-upload-hint">Uploaded URLs: {newProductData.images.length}</span>
+            </div>
+
+            {uploadedImages.length > 0 ? (
+              <div className="admin-uploaded-gallery">
+                {uploadedImages.map((url) => (
+                  <figure key={url} className="admin-uploaded-item">
+                    <img src={url} alt="Uploaded product" className="admin-uploaded-preview" />
+                    <button
+                      type="button"
+                      className="admin-chip-remove"
+                      onClick={() => removeUploadedImage(url)}
+                      disabled={isSaving}
+                    >
+                      Remove
+                    </button>
+                  </figure>
+                ))}
+              </div>
+            ) : null}
+          </section>
+
           <div className="admin-form-actions">
-            <button type="submit" className="admin-btn admin-btn--success" disabled={isSaving}>
+            <button type="submit" className="admin-btn admin-btn--success" disabled={isSaving || isUploadingImages}>
               {isSaving ? 'Saving...' : 'Add Product'}
             </button>
             <button
               type="button"
-              onClick={() => setShowAddForm(false)}
+              onClick={() => {
+                setShowAddForm(false)
+                resetAddProductForm()
+              }}
               className="admin-btn admin-btn--cancel"
+              disabled={isSaving || isUploadingImages}
             >
               Cancel
             </button>
@@ -309,6 +484,7 @@ function ProductsPanel() {
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock</th>
+                <th>Images</th>
                 <th>Description</th>
                 <th>Actions</th>
               </tr>
@@ -367,6 +543,18 @@ function ProductsPanel() {
                       />
                     ) : (
                       product.stock ?? 0
+                    )}
+                  </td>
+                  <td>
+                    {Array.isArray(product.images) && product.images.length > 0 ? (
+                      <div className="admin-product-image-stack">
+                        <img src={product.images[0]} alt={product.productName} className="admin-product-thumb" />
+                        {product.images.length > 1 ? (
+                          <span className="admin-image-count">+{product.images.length - 1}</span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="admin-product-meta">No image</span>
                     )}
                   </td>
                   <td>
