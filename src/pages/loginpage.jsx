@@ -27,6 +27,7 @@ export default function LoginPage() {
 
       if (data?.token) {
         localStorage.setItem('authToken', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
         axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
       }
 

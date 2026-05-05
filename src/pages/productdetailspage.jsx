@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { addToCart } from '../utils/cartUtils.js'
 
 export default function ProductDetailsPage() {
   const { productID } = useParams()
@@ -41,25 +42,36 @@ export default function ProductDetailsPage() {
   const handleAddToCart = () => {
     if (!product) return
 
-    const cartItem = {
-      productID: product.productID,
-      productName: product.productName,
-      price: product.price,
-      quantity,
-      image: Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : '',
+    // Check if user is logged in
+    const authToken = localStorage.getItem('authToken')
+    if (!authToken) {
+      toast.error('Please log in to add items to cart')
+      navigate('/login')
+      return
     }
 
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    const existingItem = cart.find((item) => item.productID === product.productID)
-
-    if (existingItem) {
-      existingItem.quantity += quantity
-    } else {
-      cart.push(cartItem)
+    // Check if user is a customer (not admin)
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser)
+        if (user.type === 'Admin') {
+          toast.error('Admins cannot add products to cart')
+          return
+        }
+      } catch (e) {
+        console.error('Error parsing user data:', e)
+      }
     }
 
-    localStorage.setItem('cart', JSON.stringify(cart))
-    toast.success(`${product.productName} added to cart!`)
+    try {
+      addToCart(product, quantity)
+      toast.success(`${product.productName} added to cart!`)
+      setQuantity(1) // Reset quantity after adding
+      navigate('/cart')
+    } catch (error) {
+      toast.error(error.message || 'Failed to add to cart')
+    }
   }
 
   if (isLoading) {
