@@ -1,12 +1,17 @@
 import axios from 'axios'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 function ProductCard({ product }) {
   const imageUrl = Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : ''
+  const navigate = useNavigate()
+
+  const handleCardClick = () => {
+    navigate(`/products/${product.productID}`)
+  }
 
   return (
-    <article className="products-card">
+    <article className="products-card" onClick={handleCardClick} role="button" tabIndex="0" onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}>
       <div className="products-card-image-wrap">
         {imageUrl ? (
           <img src={imageUrl} alt={product.productName} className="products-card-image" loading="lazy" />
@@ -17,6 +22,14 @@ function ProductCard({ product }) {
 
       <div className="products-card-body">
         <h3 className="products-card-title">{product.productName}</h3>
+        <div className="products-card-footer">
+          <span className="products-card-price">${product.price.toFixed(2)}</span>
+          {product.stock > 0 ? (
+            <span className="products-card-stock">In Stock</span>
+          ) : (
+            <span className="products-card-stock products-card-stock--out">Out</span>
+          )}
+        </div>
       </div>
     </article>
   )

@@ -5,6 +5,7 @@ import LoginPage from './pages/loginpage.jsx'
 import SignUpPage from './pages/signuppage.jsx'
 import AdminPage from './pages/adminpage.jsx'
 import ProductPage from './pages/productpage.jsx'
+import ProductDetailsPage from './pages/productdetailspage.jsx'
 import { Toaster } from 'react-hot-toast'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductPage />} />
+        <Route path="/products/:productID" element={<ProductDetailsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/admin/login" element={<LoginPage />} />
