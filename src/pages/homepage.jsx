@@ -25,6 +25,13 @@ const features = [
 ]
 
 export default function HomePage() {
+  const navItems = [
+    { label: 'Home', to: '/' },
+    { label: 'Shop', to: '/products' },
+    { label: 'Pages', href: '#' },
+    { label: 'Contact', href: '#' },
+  ]
+
   return (
     <div
       className="home-page"
@@ -88,11 +95,17 @@ export default function HomePage() {
           </div>
 
           <nav className="home-nav" aria-label="Primary">
-            {['Home', 'Shop', 'Pages', 'Contact'].map((link) => (
-              <a key={link} href="#" className="home-nav-link">
-                {link}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.to ? (
+                <Link key={item.label} to={item.to} className="home-nav-link">
+                  {item.label}
+                </Link>
+              ) : (
+                <a key={item.label} href={item.href} className="home-nav-link">
+                  {item.label}
+                </a>
+              ),
+            )}
           </nav>
 
           <div className="home-actions">
@@ -129,9 +142,9 @@ export default function HomePage() {
             </p>
 
             <div className="home-cta-row">
-              <button type="button" className="home-button home-button--primary">
+              <Link to="/products" className="home-button home-button--primary">
                 Explore Collection
-              </button>
+              </Link>
 
               <button type="button" className="home-button home-button--secondary">
                 Lookbook
