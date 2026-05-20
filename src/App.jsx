@@ -1,5 +1,6 @@
 import './App.css'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import HomePage from './pages/homepage.jsx'
 import LoginPage from './pages/loginpage.jsx'
 import SignUpPage from './pages/signuppage.jsx'
@@ -35,10 +36,12 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-      <AppContent />
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId="1015040911222-9175stepk3cj3ocv6pl8hq48nl4f96nm.apps.googleusercontent.com">
+      <BrowserRouter>
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+        <AppContent />
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   )
 }
 
