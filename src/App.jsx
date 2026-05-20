@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import HomePage from './pages/homepage.jsx'
 import LoginPage from './pages/loginpage.jsx'
-import SignUpPage from './pages/signuppage.jsx'
+import CreataccountPage from './pages/creataccountpage.jsx'
 import AdminPage from './pages/adminpage.jsx'
 import ProductPage from './pages/productpage.jsx'
 import ProductDetailsPage from './pages/productdetailspage.jsx'
@@ -13,7 +13,7 @@ import { Toaster } from 'react-hot-toast'
 
 function AppContent() {
   const location = useLocation()
-  const noHeaderRoutes = ['/login', '/signup', '/admin/login']
+  const noHeaderRoutes = ['/login', '/signup', '/create-account', '/admin/login']
   const showHeader = !noHeaderRoutes.includes(location.pathname)
 
   return (
@@ -25,7 +25,8 @@ function AppContent() {
         <Route path="/products/:productID" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signup" element={<CreataccountPage />} />
+        <Route path="/create-account" element={<CreataccountPage />} />
         <Route path="/admin/login" element={<LoginPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
         <Route path="*" element={<h2 style={{ padding: '2rem' }}>404 Not Found</h2>} />

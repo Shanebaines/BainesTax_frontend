@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { GoogleLogin } from '@react-oauth/google'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [keepLogged, setKeepLogged] = useState(true)
@@ -10,6 +12,46 @@ export default function LoginPage() {
   const [responseMessage, setResponseMessage] = useState('')
   const [responseType, setResponseType] = useState('')
   const navigate = useNavigate()
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setIsSubmitting(true)
+      setResponseMessage('')
+      setResponseType('')
+
+      const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/users/google-login`, {
+        credential: credentialResponse.credential,
+      })
+
+      if (data?.token) {
+        localStorage.setItem('authToken', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
+      }
+
+      if (data?.created) {
+        toast.success('Customer account created with Google')
+      } else {
+        toast.success('Google login successful')
+      }
+
+      setResponseMessage(data?.message || 'Google login successful.')
+      setResponseType('success')
+
+      if (data?.user?.type === 'Admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
+    } catch (error) {
+      const message = error.response?.data?.error || 'Google login failed. Please try again.'
+      setResponseMessage(message)
+      setResponseType('error')
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -171,8 +213,22 @@ export default function LoginPage() {
               <div className="login-divider-line" />
             </div>
 
+            <div className="login-google-button-wrap">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  toast.error('Google login failed. Please try again.')
+                }}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                width="100%"
+              />
+            </div>
+
             <p className="login-footer">
-              Don't have an account? <a href="#">Create one</a>
+              Don't have an account? <Link to="/create-account">Create one</Link>
             </p>
           </form>
         </div>
