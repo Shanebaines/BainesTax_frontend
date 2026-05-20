@@ -1,0 +1,97 @@
+/* Mobile-only responsive adjustments for product details page
+   These styles are scoped to small viewports (max-width: 767px)
+   and intentionally avoid changing the desktop/window layout. */
+
+@media (max-width: 767px) {
+  .product-details-page {
+    padding: 0.75rem;
+  }
+
+  .product-details-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .product-details-shell {
+    width: 100%;
+  }
+
+  .product-details-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .product-images-section {
+    width: 100%;
+  }
+
+  .product-main-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .product-thumbnails {
+    display: flex !important;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .product-thumbnail img {
+    width: 56px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid transparent;
+  }
+
+  .product-thumbnail.active img {
+    border-color: #2563eb;
+  }
+
+  .product-details-section {
+    width: 100%;
+  }
+
+  .product-purchase-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  .quantity-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .quantity-input {
+    width: 72px;
+  }
+
+  .product-add-to-cart-btn {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .product-info-badges {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .product-specs-table td {
+    padding: 0.4rem 0.25rem;
+  }
+
+}

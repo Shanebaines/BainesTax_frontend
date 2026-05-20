@@ -1,4 +1,5 @@
 import axios from 'axios'
+import './productdetailspage.css'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
